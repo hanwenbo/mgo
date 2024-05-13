@@ -11,7 +11,7 @@ import (
 type Model struct {
 	ID        primitive.ObjectID `bson:"_id" json:"id"`
 	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt time.Time          `bson:"updatedAT" json:"updatedAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
 	DeletedAt *time.Time         `bson:"deletedAt,omitempty" json:"deletedAt,omitempty"`
 }
 
@@ -37,16 +37,16 @@ func ExcludeDeleted(filter bson.M) bson.M {
 	return filter
 }
 
-// EmbedUpdatedAt embed updatedAT datetime column
+// EmbedUpdatedAt embed updatedAt datetime column
 func EmbedUpdatedAt(update bson.M) bson.M {
 	updateM := bson.M{}
 	if v, ok := update["$set"]; ok {
 		if m, ok2 := v.(bson.M); ok2 {
-			m["updatedAT"] = time.Now()
+			m["updatedAt"] = time.Now()
 			updateM["$set"] = m
 		}
 	} else {
-		update["updatedAT"] = time.Now()
+		update["updatedAt"] = time.Now()
 		updateM["$set"] = update
 	}
 	return updateM
