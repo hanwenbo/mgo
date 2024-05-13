@@ -74,11 +74,11 @@ var logicMap = map[string]string{
 
 // Params query parameters
 type Params struct {
-	Page int    `json:"page" form:"page" binding:"gte=0"`
-	Size int    `json:"size" form:"size" binding:"gt=0"`
-	Sort string `json:"sort,omitempty" form:"sort" binding:""`
+	Page int    `json:"_page" form:"_page" binding:"gt=0"`
+	Size int    `json:"_limit" form:"_limit" binding:"gt=0"`
+	Sort string `json:"_sort,omitempty" form:"_sort" binding:""`
 
-	Columns []Column `json:"columns,omitempty" form:"columns"` // not required
+	Columns []Column `json:"_columns,omitempty" form:"_columns"` // not required
 }
 
 // Column query info
@@ -171,7 +171,7 @@ func (p *Params) ConvertToPage() (sort bson.D, limit int, skip int) { //nolint
 	page := NewPage(p.Page, p.Size, p.Sort)
 	sort = page.sort
 	limit = page.size
-	skip = page.page * page.size
+	skip = (page.page - 1) * page.size
 	return //nolint
 }
 

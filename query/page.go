@@ -20,7 +20,7 @@ func SetMaxSize(max int) {
 
 // Page info
 type Page struct {
-	page int    // page number, starting from page 0
+	page int    // page number, starting from page 1
 	size int    // number per page
 	sort bson.D // sort fields, default is id backwards, you can add - sign before the field to indicate reverse order, no - sign to indicate ascending order, multiple fields separated by comma
 }
@@ -47,8 +47,8 @@ func (p *Page) Skip() int {
 
 // DefaultPage default page, number 20 per page, sorted by id backwards
 func DefaultPage(page int) *Page {
-	if page < 0 {
-		page = 0
+	if page < 1 {
+		page = 1
 	}
 	return &Page{
 		page: page,
@@ -57,12 +57,12 @@ func DefaultPage(page int) *Page {
 	}
 }
 
-// NewPage custom page, starting from page 0.
+// NewPage custom page, starting from page 1.
 // the parameter columnNames indicates a sort field, if empty means id descending, if there are multiple column names, separated by a comma,
 // a '-' sign in front of each column name indicates descending order, otherwise ascending order.
 func NewPage(page int, size int, columnNames string) *Page {
-	if page < 0 {
-		page = 0
+	if page < 1 {
+		page = 1
 	}
 	if size > defaultMaxSize {
 		size = defaultMaxSize
