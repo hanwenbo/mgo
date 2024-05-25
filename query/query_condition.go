@@ -32,6 +32,8 @@ const (
 	Like = "like"
 	// In include
 	In = "in"
+	// Size
+	Size = "size"
 
 	// AND logic and
 	AND        string = "and" //nolint
@@ -61,6 +63,7 @@ var expMap = map[string]string{
 	lteSymbol: lteSymbol,
 	Like:      Like,
 	In:        In,
+	Size:      Size,
 }
 
 var logicMap = map[string]string{
@@ -147,6 +150,8 @@ func (c *Column) convert() error {
 			c.Value = bson.M{"$lte": c.Value}
 		case Like:
 			c.Value = bson.M{"$regex": fmt.Sprintf("%v", c.Value)}
+		case Size:
+			c.Value = bson.M{"$size": c.Value}
 		case In:
 			val, ok := c.Value.(string)
 			if !ok {
