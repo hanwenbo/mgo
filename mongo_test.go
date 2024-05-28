@@ -1,9 +1,11 @@
 package mgo
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/hanwenbo/mgo/query"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -95,4 +97,31 @@ func TestConvertToObjectIDs(t *testing.T) {
 	ids := []string{"65c9ae1b1378ae7f0787a039", "invalid_id"}
 	oids := ConvertToObjectIDs(ids)
 	assert.Equal(t, len(oids), 1)
+}
+
+func TestLike(t *testing.T) {
+	uri := "mongodb://root:123456@127.0.0.1:27017/zomi_backend?connectTimeoutMS=15000"
+	db, err := Init(uri)
+	if err != nil {
+		t.Log(err)
+		return
+	}
+	ctx := context.Background()
+	p := &query.Params{
+		Columns: []query.Column{
+			{
+				Name:  "title",
+				Exp:   query.Like,
+				Value: "D. Crab Soup (Riu Soup)",
+			},
+		},
+	}
+	filter, _ := p.ConvertToMongoFilter()
+	cur, err := db.Collection("dishes").Find(ctx, filter)
+	count := 0
+	for cur.Next(ctx) {
+		count++
+	}
+	assert.Equal(t, count, 1)
+
 }
