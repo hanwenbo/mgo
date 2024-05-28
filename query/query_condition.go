@@ -150,8 +150,8 @@ func (c *Column) convert() error {
 		case lteSymbol:
 			c.Value = bson.M{"$lte": c.Value}
 		case Like:
-			escapedTitle := regexp.QuoteMeta(fmt.Sprintf("%v", c.Value))
-			c.Value = bson.M{"$regex": escapedTitle}
+			escapedValue := regexp.QuoteMeta(fmt.Sprintf("%v", c.Value))
+			c.Value = bson.M{"$regex": escapedValue, "$options": "i"}
 		case Size:
 			c.Value = bson.M{"$size": c.Value}
 		case In:

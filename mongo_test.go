@@ -2,6 +2,7 @@ package mgo
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -117,11 +118,13 @@ func TestLike(t *testing.T) {
 		},
 	}
 	filter, _ := p.ConvertToMongoFilter()
+	fmt.Println(filter)
 	cur, err := db.Collection("dishes").Find(ctx, filter)
 	count := 0
 	for cur.Next(ctx) {
 		count++
 	}
+	fmt.Println(cur)
 	assert.Equal(t, count, 1)
 
 }
