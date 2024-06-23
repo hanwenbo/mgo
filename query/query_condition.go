@@ -32,9 +32,9 @@ const (
 	// Like fuzzy lookup
 	Like = "like"
 	// In include
-	In = "in"
-	// Size
-	Size = "size"
+	In    = "in"
+	InIds = "inIds"
+	Size  = "size"
 
 	// AND logic and
 	AND        string = "and" //nolint
@@ -65,6 +65,7 @@ var expMap = map[string]string{
 	Like:      Like,
 	In:        In,
 	Size:      Size,
+	InIds:     InIds,
 }
 
 var logicMap = map[string]string{
@@ -159,10 +160,25 @@ func (c *Column) convert() error {
 			if !ok {
 				return fmt.Errorf("invalid value type '%s'", c.Value)
 			}
-			values := []interface{}{}
+			var values []interface{}
 			ss := strings.Split(val, ",")
 			for _, s := range ss {
 				values = append(values, s)
+			}
+			c.Value = bson.M{"$in": values}
+		case InIds: // 转成objectID
+			val, ok := c.Value.(string)
+			if !ok {
+				return fmt.Errorf("invalid value type '%s'", c.Value)
+			}
+			var values []interface{}
+			ss := strings.Split(val, ",")
+			for _, s := range ss {
+				oid, err := primitive.ObjectIDFromHex(s)
+				if err != nil {
+					return err
+				}
+				values = append(values, oid)
 			}
 			c.Value = bson.M{"$in": values}
 		}
