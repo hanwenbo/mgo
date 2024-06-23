@@ -32,9 +32,8 @@ const (
 	// Like fuzzy lookup
 	Like = "like"
 	// In include
-	In    = "in"
-	InIds = "inIds"
-	Size  = "size"
+	In   = "in"
+	Size = "size"
 
 	// AND logic and
 	AND        string = "and" //nolint
@@ -65,7 +64,6 @@ var expMap = map[string]string{
 	Like:      Like,
 	In:        In,
 	Size:      Size,
-	InIds:     InIds,
 }
 
 var logicMap = map[string]string{
@@ -127,9 +125,22 @@ func (c *Column) convert() error {
 			c.Value, _ = primitive.ObjectIDFromHex(str)
 		}
 	} else if strings.Contains(c.Name, ":oid") {
-		if str, ok := c.Value.(string); ok {
-			c.Name = strings.Replace(c.Name, ":oid", "", 1)
-			c.Value, _ = primitive.ObjectIDFromHex(str)
+		c.Name = strings.Replace(c.Name, ":oid", "", 1)
+		// 如果是数组
+		if str, ok := c.Value.([]string); ok {
+			var values []interface{}
+			for _, s := range str {
+				oid, err := primitive.ObjectIDFromHex(s)
+				if err != nil {
+					return err
+				}
+				values = append(values, oid)
+			}
+			c.Value = bson.M{"$in": values}
+		} else {
+			if str, ok := c.Value.(string); ok {
+				c.Value, _ = primitive.ObjectIDFromHex(str)
+			}
 		}
 	}
 
@@ -164,21 +175,6 @@ func (c *Column) convert() error {
 			ss := strings.Split(val, ",")
 			for _, s := range ss {
 				values = append(values, s)
-			}
-			c.Value = bson.M{"$in": values}
-		case InIds: // 转成objectID
-			val, ok := c.Value.(string)
-			if !ok {
-				return fmt.Errorf("invalid value type '%s'", c.Value)
-			}
-			var values []interface{}
-			ss := strings.Split(val, ",")
-			for _, s := range ss {
-				oid, err := primitive.ObjectIDFromHex(s)
-				if err != nil {
-					return err
-				}
-				values = append(values, oid)
 			}
 			c.Value = bson.M{"$in": values}
 		}
