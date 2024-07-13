@@ -35,8 +35,7 @@ const (
 	// In include
 	In          = "in"
 	Size        = "size"
-	Between     = "between"
-	BetweenDate = "betweenDate"
+	BetweenDate = "between_date"
 
 	// AND logic and
 	AND        string = "and" //nolint
@@ -67,7 +66,6 @@ var expMap = map[string]string{
 	Like:        Like,
 	In:          In,
 	Size:        Size,
-	Between:     Between,
 	BetweenDate: BetweenDate,
 }
 
@@ -182,29 +180,28 @@ func (c *Column) convert() error {
 				values = append(values, s)
 			}
 			c.Value = bson.M{"$in": values}
-		case Between:
-			val, ok := c.Value.([]string)
-			if !ok {
-				return fmt.Errorf("invalid value type '%s'", c.Value)
-			}
-			if len(val) != 2 {
-				return fmt.Errorf("invalid value length '%d'", len(val))
-			}
-			c.Value = bson.M{"$gte": val[0], "$lte": val[1]}
 		case BetweenDate:
 			// [2024-07-13,2024-07-15]
-			val, ok := c.Value.([]string)
+			var strSlice []string
+			valueSlice, ok := c.Value.([]interface{})
 			if !ok {
-				return fmt.Errorf("invalid value type '%s'", c.Value)
+				return fmt.Errorf("c.Value is not a slice")
 			}
-			if len(val) != 2 {
-				return fmt.Errorf("invalid value length '%d'", len(val))
+			for _, item := range valueSlice {
+				strItem, ok := item.(string)
+				if !ok {
+					return fmt.Errorf("item in slice is not a string")
+				}
+				strSlice = append(strSlice, strItem)
+			}
+
+			if len(strSlice) != 2 {
+				return fmt.Errorf("invalid value length '%d'", len(strSlice))
 			}
 			var _val []time.Time
-			for _, v := range val {
+			for _, v := range strSlice {
 				t, err := time.Parse("2006-01-02", v)
 				if err != nil {
-					// 处理解析错误
 					continue
 				}
 				_val = append(_val, t)
