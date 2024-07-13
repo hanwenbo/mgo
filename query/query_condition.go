@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,9 +33,10 @@ const (
 	// Like fuzzy lookup
 	Like = "like"
 	// In include
-	In      = "in"
-	Size    = "size"
-	Between = "between"
+	In          = "in"
+	Size        = "size"
+	Between     = "between"
+	BetweenDate = "betweenDate"
 
 	// AND logic and
 	AND        string = "and" //nolint
@@ -50,22 +52,23 @@ const (
 )
 
 var expMap = map[string]string{
-	Eq:        eqSymbol,
-	eqSymbol:  eqSymbol,
-	Neq:       neqSymbol,
-	neqSymbol: neqSymbol,
-	Gt:        gtSymbol,
-	gtSymbol:  gtSymbol,
-	Gte:       gteSymbol,
-	gteSymbol: gteSymbol,
-	Lt:        ltSymbol,
-	ltSymbol:  ltSymbol,
-	Lte:       lteSymbol,
-	lteSymbol: lteSymbol,
-	Like:      Like,
-	In:        In,
-	Size:      Size,
-	Between:   Between,
+	Eq:          eqSymbol,
+	eqSymbol:    eqSymbol,
+	Neq:         neqSymbol,
+	neqSymbol:   neqSymbol,
+	Gt:          gtSymbol,
+	gtSymbol:    gtSymbol,
+	Gte:         gteSymbol,
+	gteSymbol:   gteSymbol,
+	Lt:          ltSymbol,
+	ltSymbol:    ltSymbol,
+	Lte:         lteSymbol,
+	lteSymbol:   lteSymbol,
+	Like:        Like,
+	In:          In,
+	Size:        Size,
+	Between:     Between,
+	BetweenDate: BetweenDate,
 }
 
 var logicMap = map[string]string{
@@ -180,7 +183,6 @@ func (c *Column) convert() error {
 			}
 			c.Value = bson.M{"$in": values}
 		case Between:
-			// [2024-07-13,2024-07-15]
 			val, ok := c.Value.([]string)
 			if !ok {
 				return fmt.Errorf("invalid value type '%s'", c.Value)
@@ -189,6 +191,29 @@ func (c *Column) convert() error {
 				return fmt.Errorf("invalid value length '%d'", len(val))
 			}
 			c.Value = bson.M{"$gte": val[0], "$lte": val[1]}
+		case BetweenDate:
+			// [2024-07-13,2024-07-15]
+			val, ok := c.Value.([]string)
+			if !ok {
+				return fmt.Errorf("invalid value type '%s'", c.Value)
+			}
+			if len(val) != 2 {
+				return fmt.Errorf("invalid value length '%d'", len(val))
+			}
+			var _val []time.Time
+			for _, v := range val {
+				t, err := time.Parse("2006-01-02", v)
+				if err != nil {
+					// 处理解析错误
+					continue
+				}
+				_val = append(_val, t)
+			}
+			c.Value = bson.M{
+				"$gte": _val[0],
+				"$lte": _val[1],
+			}
+
 		}
 
 	} else {

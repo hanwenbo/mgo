@@ -20,8 +20,8 @@ defer Close(db)
 ### Publish
 
 ```bash
-git tag v1.0.6
-git push origin v1.0.5
+git tag v1.0.8
+git push origin v1.0.8
 ```
 
 ### Install
@@ -31,5 +31,5 @@ go get github.com/hanwenbo/mgo@lastest
 go get -u github.com/hanwenbo/mgo@lastest
 
 // or 
-go get -u github.com/hanwenbo/mgo@v1.0.5
+go get -u github.com/hanwenbo/mgo@v1.0.7
 ```
