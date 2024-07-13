@@ -32,8 +32,9 @@ const (
 	// Like fuzzy lookup
 	Like = "like"
 	// In include
-	In   = "in"
-	Size = "size"
+	In      = "in"
+	Size    = "size"
+	Between = "between"
 
 	// AND logic and
 	AND        string = "and" //nolint
@@ -64,6 +65,7 @@ var expMap = map[string]string{
 	Like:      Like,
 	In:        In,
 	Size:      Size,
+	Between:   Between,
 }
 
 var logicMap = map[string]string{
@@ -177,7 +179,18 @@ func (c *Column) convert() error {
 				values = append(values, s)
 			}
 			c.Value = bson.M{"$in": values}
+		case Between:
+			// [2024-07-13,2024-07-15]
+			val, ok := c.Value.([]string)
+			if !ok {
+				return fmt.Errorf("invalid value type '%s'", c.Value)
+			}
+			if len(val) != 2 {
+				return fmt.Errorf("invalid value length '%d'", len(val))
+			}
+			c.Value = bson.M{"$gte": val[0], "$lte": val[1]}
 		}
+
 	} else {
 		return fmt.Errorf("unknown exp type '%s'", c.Exp)
 	}
