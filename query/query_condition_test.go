@@ -40,6 +40,20 @@ func TestParams_ConvertToMongoFilter(t *testing.T) {
 		want    bson.M
 		wantErr bool
 	}{
+		{
+			name: "1 column in array",
+			args: args{
+				columns: []Column{
+					{
+						Exp:   In,
+						Name:  "name",
+						Value: []interface{}{"ZhangSan", 1, 3, 4},
+					},
+				},
+			},
+			want:    bson.M{"name": bson.M{"$in": []interface{}{"ZhangSan", 1, 3, 4}}},
+			wantErr: false,
+		},
 		// --------------------------- only 1 column query ------------------------------
 		{
 			name: "1 column eq",

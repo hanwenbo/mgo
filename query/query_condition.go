@@ -3,6 +3,7 @@ package query
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -170,16 +171,20 @@ func (c *Column) convert() error {
 		case Size:
 			c.Value = bson.M{"$size": c.Value}
 		case In:
-			val, ok := c.Value.(string)
-			if !ok {
-				return fmt.Errorf("invalid value type '%s'", c.Value)
+			if reflect.TypeOf(c.Value).Kind() == reflect.Slice {
+				c.Value = bson.M{"$in": c.Value}
+			} else {
+				val, ok := c.Value.(string)
+				if !ok {
+					return fmt.Errorf("invalid value type '%s'", c.Value)
+				}
+				var values []interface{}
+				ss := strings.Split(val, ",")
+				for _, s := range ss {
+					values = append(values, s)
+				}
+				c.Value = bson.M{"$in": values}
 			}
-			var values []interface{}
-			ss := strings.Split(val, ",")
-			for _, s := range ss {
-				values = append(values, s)
-			}
-			c.Value = bson.M{"$in": values}
 		case BetweenDate:
 			// [2024-07-13,2024-07-15]
 			var strSlice []string
